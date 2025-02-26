@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, jsonify
 app = Flask(__name__, template_folder="templates")
 app.secret_key = os.environ.get("SECRET_KEY", "default_secret_key")
 
+# Lấy API key từ biến môi trường GEMINI_API_KEY
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
@@ -32,6 +33,7 @@ def chat():
         
         data = response.json()
         if "candidates" in data and len(data["candidates"]) > 0:
+            # Giả sử cấu trúc phản hồi: { "content": { "parts": [ { "text": ... } ] } }
             reply = data["candidates"][0].get("content", {}).get("parts", [{}])[0].get("text", "Không có nội dung phản hồi.")
         else:
             reply = "Không nhận được phản hồi từ API."
