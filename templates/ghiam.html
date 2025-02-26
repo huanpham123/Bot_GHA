@@ -145,7 +145,7 @@
     let recognition;
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
-      recognition.lang = 'vi-VN'; // Tiếng Việt
+      recognition.lang = 'vi-VN'; // Ngôn ngữ tiếng Việt
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
     } else {
@@ -172,7 +172,7 @@
       if (!recognition) return;
       isRecording = true;
       recordButton.classList.add('recording');
-      // Cập nhật nội dung nút thành "Đang ghi âm..."
+      // Hiển thị thông báo "Đang ghi âm..."
       recordButton.innerHTML = '<span style="font-size: 16px; font-weight: bold;">Đang ghi âm...</span>';
       recognition.start();
     }
@@ -202,7 +202,7 @@
     };
 
     recognition.onend = function() {
-      // Khi nhận diện kết thúc, ẩn nút ghi âm và hiển thị khung chat
+      // Sau khi kết thúc nhận diện, ẩn nút ghi âm và hiển thị khung chat
       recordButton.style.display = 'none';
       chatBox.classList.add('active');
     };
