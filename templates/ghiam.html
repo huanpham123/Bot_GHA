@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Neon Voice Assistant</title>
-  <!-- Google Fonts: Orbitron cho phong cách futuristic -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-  <!-- Particles.js (hiệu ứng nền) -->
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   <style>
     :root {
@@ -30,7 +28,6 @@
       overflow: hidden;
       position: relative;
     }
-    /* Particles.js container */
     #particles-js {
       position: fixed;
       width: 100%;
@@ -39,7 +36,6 @@
       top: 0;
       left: 0;
     }
-    /* Nền chuyển động gradient theo phong cách futuristic */
     body::before {
       content: "";
       position: fixed;
@@ -57,7 +53,6 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    /* Nút ghi âm kiểu neon với hiệu ứng gradient chuyển động */
     #record-button {
       width: 120px;
       height: 120px;
@@ -85,8 +80,11 @@
       background: linear-gradient(45deg, #ff0000, #ff00ff);
       animation: gradientShift 3s ease infinite, pulse 1.5s infinite;
     }
-    #record-button svg, #record-button span {
+    #record-button svg {
       transition: all 0.3s ease;
+      fill: #fff;
+      width: 50px;
+      height: 50px;
     }
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
@@ -101,7 +99,6 @@
       0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
       100% { box-shadow: 0 0 0 30px rgba(255, 0, 0, 0); }
     }
-    /* Hiệu ứng waveform khi ghi âm */
     #waveform {
       position: absolute;
       top: 0;
@@ -110,7 +107,6 @@
       height: 120px;
       display: none;
     }
-    /* Chat box kiểu glassmorphism */
     #chat-box {
       position: fixed;
       bottom: 120px;
@@ -172,7 +168,6 @@
       from { transform: translateX(-100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
-    /* Nút Speak Again */
     #back-button {
       margin-top: 20px;
       padding: 15px 40px;
@@ -189,7 +184,6 @@
       transform: scale(1.05);
       box-shadow: 0 0 20px var(--primary);
     }
-    /* Loader */
     .loader {
       display: none;
       width: 50px;
@@ -211,7 +205,7 @@
     }
     .loader::after {
       border-top-color: var(--secondary);
-      animation-duration: 2s;
+      animation-direction: reverse;
     }
     @keyframes spin {
       0% { transform: rotate(0deg); }
@@ -232,10 +226,7 @@
   </style>
 </head>
 <body>
-  <!-- Particles.js Container -->
   <div id="particles-js"></div>
-  
-  <!-- Nút ghi âm -->
   <div id="record-button">
     <svg id="mic-icon" viewBox="0 0 24 24">
       <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
@@ -243,14 +234,12 @@
     </svg>
     <canvas id="waveform" width="120" height="120"></canvas>
   </div>
-  
-  <!-- Khung chat -->
   <div id="chat-box">
     <div id="chat-content"></div>
     <div class="loader"></div>
     <button id="back-button">Speak Again</button>
   </div>
-  
+
   <script>
     // Khởi tạo Particles.js
     particlesJS("particles-js", {
@@ -269,8 +258,8 @@
       },
       retina_detect: true
     });
-  
-    // Web Speech API để nhận diện giọng nói tiếng Việt
+
+    // Web Speech API
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = SpeechRecognition ? new SpeechRecognition() : null;
     if (recognition) {
@@ -278,9 +267,9 @@
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
     } else {
-      alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+      alert("Trình duyệt không hỗ trợ nhận diện giọng nói.");
     }
-  
+
     let isRecording = false, stream;
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const recordButton = document.getElementById('record-button');
@@ -289,9 +278,9 @@
     const chatBox = document.getElementById('chat-box');
     const chatContent = document.getElementById('chat-content');
     const loader = document.querySelector('.loader');
-  
+
     recordButton.addEventListener('click', toggleRecording);
-  
+
     async function toggleRecording() {
       if (!isRecording) {
         try {
@@ -306,15 +295,14 @@
         stream.getTracks().forEach(track => track.stop());
       }
     }
-  
+
     function startRecognition(stream) {
       if (!recognition) return;
       isRecording = true;
       recordButton.classList.add('recording');
       micIcon.style.display = 'none';
       waveformCanvas.style.display = 'block';
-  
-      // Vẽ waveform
+
       const source = audioCtx.createMediaStreamSource(stream);
       const analyser = audioCtx.createAnalyser();
       analyser.fftSize = 2048;
@@ -322,8 +310,9 @@
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
       const canvasCtx = waveformCanvas.getContext('2d');
-  
+
       function draw() {
+        if (!isRecording) return;
         requestAnimationFrame(draw);
         analyser.getByteTimeDomainData(dataArray);
         canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
@@ -336,31 +325,19 @@
         for (let i = 0; i < bufferLength; i++) {
           const v = dataArray[i] / 128.0;
           const y = (v * waveformCanvas.height) / 2;
-          if (i === 0) {
-            canvasCtx.moveTo(x, y);
-          } else {
-            canvasCtx.lineTo(x, y);
-          }
+          if (i === 0) canvasCtx.moveTo(x, y);
+          else canvasCtx.lineTo(x, y);
           x += sliceWidth;
         }
         canvasCtx.lineTo(waveformCanvas.width, waveformCanvas.height / 2);
         canvasCtx.stroke();
       }
       draw();
-  
+
       if (audioCtx.state === 'suspended') audioCtx.resume();
-  
-      // Tạo một âm thanh nhỏ để kích hoạt microphone (nếu cần)
-      const oscillator = audioCtx.createOscillator();
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-      oscillator.connect(audioCtx.destination);
-      oscillator.start();
-      oscillator.stop(audioCtx.currentTime + 0.1);
-  
       recognition.start();
     }
-  
+
     function stopRecognition() {
       if (!recognition) return;
       recognition.stop();
@@ -369,35 +346,33 @@
       micIcon.style.display = 'block';
       waveformCanvas.style.display = 'none';
     }
-  
+
     recognition.onresult = function(event) {
       const transcript = event.results[0][0].transcript;
-      console.log("Transcript:", transcript);
       sendChatMessage(transcript);
     };
-  
+
     recognition.onerror = function(event) {
       console.error("Speech recognition error:", event.error);
       alert("Lỗi nhận diện giọng nói: " + event.error);
       resetRecordButton();
     };
-  
+
     recognition.onend = function() {
+      if (isRecording) return; // Tránh hiện chat box khi lỗi
       recordButton.style.display = 'none';
       chatBox.classList.add('active');
     };
-  
+
     function sendChatMessage(message) {
       loader.style.display = 'block';
-  
-      // Hiển thị tin nhắn của người dùng
       const userMsg = document.createElement('p');
       userMsg.className = 'user-message';
       userMsg.innerHTML = `<strong>You:</strong> ${message}`;
       chatContent.appendChild(userMsg);
       userMsg.style.animation = 'slideInRight 0.5s ease';
       chatContent.scrollTop = chatContent.scrollHeight;
-  
+
       fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -428,18 +403,14 @@
         loader.style.display = 'none';
       });
     }
-  
+
     function resetRecordButton() {
       isRecording = false;
       recordButton.classList.remove('recording');
       micIcon.style.display = 'block';
       waveformCanvas.style.display = 'none';
-      recordButton.innerHTML = `<svg id="mic-icon" viewBox="0 0 24 24">
-        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-      </svg>`;
     }
-  
+
     document.getElementById('back-button').addEventListener('click', () => {
       chatBox.classList.remove('active');
       setTimeout(() => {
@@ -447,12 +418,6 @@
         resetRecordButton();
         chatContent.innerHTML = '';
       }, 400);
-    });
-  
-    document.addEventListener('mousemove', (e) => {
-      const x = e.clientX / window.innerWidth;
-      const y = e.clientY / window.innerHeight;
-      document.body.style.background = `radial-gradient(at ${x * 100}% ${y * 100}%, #1a1a2e 0%, #0a0a16 50%)`;
     });
   </script>
 </body>
