@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Neon Voice Assistant</title>
+  <!-- Google Fonts: Orbitron cho phong cách futuristic -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Particles.js (hiệu ứng nền) -->
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   <style>
     :root {
       --primary: #00ff9d;
@@ -12,33 +15,55 @@
       --accent: #ff00ff;
       --bg: #0a0a16;
       --glass: rgba(255, 255, 255, 0.05);
+      --font-future: 'Orbitron', sans-serif;
     }
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: var(--font-future);
     }
     body {
       background: var(--bg);
-      color: white;
+      color: #e0e0e0;
       min-height: 100vh;
-      overflow-x: hidden;
+      overflow: hidden;
+      position: relative;
     }
+    /* Particles.js container */
     #particles-js {
       position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
-      z-index: -1;
+      z-index: -2;
+      top: 0;
+      left: 0;
     }
+    /* Nền chuyển động gradient theo phong cách futuristic */
+    body::before {
+      content: "";
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, #1a1a2e, #0a0a16, #0f0f1a, #1a1a2e);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      z-index: -3;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* Nút ghi âm kiểu neon với hiệu ứng gradient chuyển động */
     #record-button {
       width: 120px;
       height: 120px;
       background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
       background-size: 200% 200%;
-      animation: gradientShift 10s ease infinite;
+      animation: float 3s ease-in-out infinite, gradientShift 10s ease infinite;
       border-radius: 50%;
       position: fixed;
       left: 50%;
@@ -48,9 +73,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.3s ease;
       box-shadow: 0 0 30px var(--primary);
-      animation: float 3s ease-in-out infinite, gradientShift 10s ease infinite;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     #record-button:hover {
       animation: gradientShift 5s ease infinite;
@@ -61,19 +85,32 @@
       background: linear-gradient(45deg, #ff0000, #ff00ff);
       animation: gradientShift 3s ease infinite, pulse 1.5s infinite;
     }
-    #record-button svg {
-      width: 50px;
-      height: 50px;
-      fill: white;
+    #record-button svg, #record-button span {
+      transition: all 0.3s ease;
     }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(-15px); }
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+      100% { box-shadow: 0 0 0 30px rgba(255, 0, 0, 0); }
+    }
+    /* Hiệu ứng waveform khi ghi âm */
     #waveform {
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 120px;
+      height: 120px;
       display: none;
     }
+    /* Chat box kiểu glassmorphism */
     #chat-box {
       position: fixed;
       bottom: 120px;
@@ -82,12 +119,13 @@
       width: 90%;
       max-width: 800px;
       background: var(--glass);
-      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(20px);
       border-radius: 20px;
       padding: 30px;
       opacity: 0;
       visibility: hidden;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.4s ease;
       box-shadow: 0 0 20px var(--primary);
     }
     #chat-box.active {
@@ -103,7 +141,8 @@
       margin-bottom: 20px;
       border-radius: 10px;
       background: rgba(0, 0, 0, 0.3);
-      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1em;
+      line-height: 1.5;
     }
     #chat-content p {
       padding: 10px 15px;
@@ -125,29 +164,15 @@
       text-align: left;
       animation-name: slideInLeft;
     }
-    .loader {
-      display: none;
-      position: relative;
-      width: 50px;
-      height: 50px;
-      margin: 0 auto;
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
-    .loader::before, .loader::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      border: 3px solid transparent;
-      border-top-color: var(--primary);
-      animation: spin 1.5s linear infinite;
+    @keyframes slideInLeft {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
-    .loader::after {
-      border-top-color: var(--secondary);
-      animation-duration: 2s;
-    }
+    /* Nút Speak Again */
     #back-button {
       margin-top: 20px;
       padding: 15px 40px;
@@ -158,41 +183,59 @@
       color: var(--bg);
       font-weight: bold;
       font-size: 18px;
-      transition: all 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     #back-button:hover {
       transform: scale(1.05);
       box-shadow: 0 0 20px var(--primary);
     }
+    /* Loader */
+    .loader {
+      display: none;
+      width: 50px;
+      height: 50px;
+      position: relative;
+      margin: 0 auto;
+    }
+    .loader::before, .loader::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 4px solid transparent;
+      border-top-color: var(--primary);
+      animation: spin 1.5s linear infinite;
+    }
+    .loader::after {
+      border-top-color: var(--secondary);
+      animation-duration: 2s;
+    }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    @keyframes slideInLeft {
-      from { transform: translateX(-100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideInRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes float {
-      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-      50% { transform: translate(-50%, -50%) translateY(-10px); }
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
-      100% { box-shadow: 0 0 0 30px rgba(255, 0, 0, 0); }
-    }
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    @media (max-width: 768px) {
+      #record-button {
+        width: 80px;
+        height: 80px;
+        animation: none;
+      }
+      #chat-box {
+        bottom: 160px;
+        width: 95%;
+        padding: 20px;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Particles.js Container -->
   <div id="particles-js"></div>
+  
+  <!-- Nút ghi âm -->
   <div id="record-button">
     <svg id="mic-icon" viewBox="0 0 24 24">
       <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
@@ -200,23 +243,25 @@
     </svg>
     <canvas id="waveform" width="120" height="120"></canvas>
   </div>
+  
+  <!-- Khung chat -->
   <div id="chat-box">
     <div id="chat-content"></div>
     <div class="loader"></div>
     <button id="back-button">Speak Again</button>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  
   <script>
+    // Khởi tạo Particles.js
     particlesJS("particles-js", {
       particles: {
         number: { value: 80, density: { enable: true, value_area: 800 } },
         color: { value: "#ffffff" },
         shape: { type: "circle" },
-        opacity: { value: 0.5, random: false },
+        opacity: { value: 0.5 },
         size: { value: 3, random: true },
         line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
-        move: { enable: true, speed: 2, direction: "none", random: false, straight: false, out_mode: "out" }
+        move: { enable: true, speed: 2, out_mode: "out" }
       },
       interactivity: {
         detect_on: "canvas",
@@ -224,7 +269,8 @@
       },
       retina_detect: true
     });
-
+  
+    // Web Speech API để nhận diện giọng nói tiếng Việt
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = SpeechRecognition ? new SpeechRecognition() : null;
     if (recognition) {
@@ -232,18 +278,20 @@
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
     } else {
-      alert("Trình duyệt không hỗ trợ nhận diện giọng nói.");
+      alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
     }
-
+  
     let isRecording = false, stream;
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const recordButton = document.getElementById('record-button');
+    const micIcon = document.getElementById('mic-icon');
+    const waveformCanvas = document.getElementById('waveform');
     const chatBox = document.getElementById('chat-box');
     const chatContent = document.getElementById('chat-content');
     const loader = document.querySelector('.loader');
-
+  
     recordButton.addEventListener('click', toggleRecording);
-
+  
     async function toggleRecording() {
       if (!isRecording) {
         try {
@@ -258,90 +306,98 @@
         stream.getTracks().forEach(track => track.stop());
       }
     }
-
+  
     function startRecognition(stream) {
       if (!recognition) return;
       isRecording = true;
       recordButton.classList.add('recording');
-      document.getElementById('mic-icon').style.display = 'none';
-      const canvas = document.getElementById('waveform');
-      canvas.style.display = 'block';
-
+      micIcon.style.display = 'none';
+      waveformCanvas.style.display = 'block';
+  
+      // Vẽ waveform
       const source = audioCtx.createMediaStreamSource(stream);
       const analyser = audioCtx.createAnalyser();
       analyser.fftSize = 2048;
       source.connect(analyser);
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
-      const canvasCtx = canvas.getContext('2d');
-
+      const canvasCtx = waveformCanvas.getContext('2d');
+  
       function draw() {
         requestAnimationFrame(draw);
         analyser.getByteTimeDomainData(dataArray);
         canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.fillRect(0, 0, waveformCanvas.width, waveformCanvas.height);
         canvasCtx.lineWidth = 2;
         canvasCtx.strokeStyle = 'var(--primary)';
         canvasCtx.beginPath();
-        const sliceWidth = canvas.width / bufferLength;
+        const sliceWidth = waveformCanvas.width / bufferLength;
         let x = 0;
         for (let i = 0; i < bufferLength; i++) {
           const v = dataArray[i] / 128.0;
-          const y = (v * canvas.height) / 2;
-          if (i === 0) canvasCtx.moveTo(x, y);
-          else canvasCtx.lineTo(x, y);
+          const y = (v * waveformCanvas.height) / 2;
+          if (i === 0) {
+            canvasCtx.moveTo(x, y);
+          } else {
+            canvasCtx.lineTo(x, y);
+          }
           x += sliceWidth;
         }
-        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.lineTo(waveformCanvas.width, waveformCanvas.height / 2);
         canvasCtx.stroke();
       }
       draw();
-
+  
       if (audioCtx.state === 'suspended') audioCtx.resume();
+  
+      // Tạo một âm thanh nhỏ để kích hoạt microphone (nếu cần)
       const oscillator = audioCtx.createOscillator();
       oscillator.type = 'sine';
       oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
       oscillator.connect(audioCtx.destination);
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + 0.1);
-
+  
       recognition.start();
     }
-
+  
     function stopRecognition() {
       if (!recognition) return;
       recognition.stop();
       isRecording = false;
       recordButton.classList.remove('recording');
-      document.getElementById('mic-icon').style.display = 'block';
-      document.getElementById('waveform').style.display = 'none';
+      micIcon.style.display = 'block';
+      waveformCanvas.style.display = 'none';
     }
-
+  
     recognition.onresult = function(event) {
       const transcript = event.results[0][0].transcript;
+      console.log("Transcript:", transcript);
       sendChatMessage(transcript);
     };
-
+  
     recognition.onerror = function(event) {
       console.error("Speech recognition error:", event.error);
       alert("Lỗi nhận diện giọng nói: " + event.error);
       resetRecordButton();
     };
-
+  
     recognition.onend = function() {
       recordButton.style.display = 'none';
       chatBox.classList.add('active');
     };
-
+  
     function sendChatMessage(message) {
       loader.style.display = 'block';
+  
+      // Hiển thị tin nhắn của người dùng
       const userMsg = document.createElement('p');
       userMsg.className = 'user-message';
       userMsg.innerHTML = `<strong>You:</strong> ${message}`;
       chatContent.appendChild(userMsg);
       userMsg.style.animation = 'slideInRight 0.5s ease';
       chatContent.scrollTop = chatContent.scrollHeight;
-
+  
       fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -372,14 +428,18 @@
         loader.style.display = 'none';
       });
     }
-
+  
     function resetRecordButton() {
       isRecording = false;
       recordButton.classList.remove('recording');
-      document.getElementById('mic-icon').style.display = 'block';
-      document.getElementById('waveform').style.display = 'none';
+      micIcon.style.display = 'block';
+      waveformCanvas.style.display = 'none';
+      recordButton.innerHTML = `<svg id="mic-icon" viewBox="0 0 24 24">
+        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+      </svg>`;
     }
-
+  
     document.getElementById('back-button').addEventListener('click', () => {
       chatBox.classList.remove('active');
       setTimeout(() => {
@@ -388,7 +448,7 @@
         chatContent.innerHTML = '';
       }, 400);
     });
-
+  
     document.addEventListener('mousemove', (e) => {
       const x = e.clientX / window.innerWidth;
       const y = e.clientY / window.innerHeight;
