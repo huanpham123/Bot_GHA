@@ -31,7 +31,7 @@ def chat():
         if response.status_code != 200:
             return jsonify({"error": "API error", "details": response.text}), 500
         data = response.json()
-        # Giả sử kết quả trả về chứa mảng "candidates" với khóa "output" chứa phản hồi
+        # Giả sử kết quả trả về có mảng "candidates" với khóa "output" chứa phản hồi
         if "candidates" in data and len(data["candidates"]) > 0:
             reply = data["candidates"][0].get("output", "")
         else:
@@ -41,4 +41,5 @@ def chat():
         return jsonify({"error": "API error", "details": str(e)}), 500
 
 if __name__ == '__main__':
+    # Khi triển khai trên Vercel, Vercel sẽ quản lý việc khởi chạy ứng dụng.
     app.run(debug=True)
