@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Voice Assistant</title>
+  <style>
+    :root {
+      --primary: #00ff9d;
+      --secondary: #0066ff;
+      --bg: #0a0a16;
+      --glass: rgba(255, 255, 255, 0.05);
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    body {
+      background: var(--bg);
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    /* Nút ghi âm nổi giữa màn hình */
+    #record-button {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      border-radius: 50%;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 30px var(--primary);
+      animation: float 3s ease-in-out infinite;
+    }
+    #record-button:hover {
+      transform: translate(-50%, -50%) scale(1.1);
+      box-shadow: 0 0 50px var(--primary);
+    }
+    #record-button.recording {
+      animation: pulse 1.5s infinite, float 3s ease-in-out infinite;
+    }
+    #record-button svg, #record-button span {
+      transition: all 0.3s ease;
+    }
+    /* Khung hiển thị chat */
+    #chat-box {
+      position: fixed;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 800px;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #chat-box.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -20px);
+    }
+    #chat-content {
+      min-height: 150px;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      #record-button {
+        width: 80px;
+        height: 80px;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        animation: none;
+      }
+      #chat-box {
+        bottom: 160px;
+        width: 95%;
+        padding: 20px;
+      }
+    }
+    /* Loading animation */
+    .loader {
+      display: none;
+      width: 24px;
+      height: 24px;
+      border: 3px solid white;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      animation: rotation 1s linear infinite;
+    }
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(-10px); }
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.5); }
+      100% { box-shadow: 0 0 0 20px rgba(0, 255, 157, 0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Nút ghi âm -->
+  <div id="record-button">
+    <!-- Hiển thị biểu tượng microphone ban đầu -->
+    <svg id="mic-icon" viewBox="0 0 24 24">
+      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+    </svg>
+  </div>
+
+  <!-- Khung chat -->
+  <div id="chat-box">
+    <div id="chat-content"></div>
+    <div class="loader"></div>
+    <button id="back-button" style="margin-top: 20px; padding: 12px 30px; background: var(--primary); border: none; border-radius: 8px; cursor: pointer; color: var(--bg); font-weight: bold;">
+      Speak Again
+    </button>
+  </div>
+
+  <script>
+    // Sử dụng Web Speech API để nhận diện giọng nói tiếng Việt
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'vi-VN'; // Tiếng Việt
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+    } else {
+      alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+    }
+
+    let isRecording = false;
+    const recordButton = document.getElementById('record-button');
+    const chatBox = document.getElementById('chat-box');
+    const chatContent = document.getElementById('chat-content');
+    const loader = document.querySelector('.loader');
+
+    recordButton.addEventListener('click', toggleRecording);
+
+    function toggleRecording() {
+      if (!isRecording) {
+        startRecognition();
+      } else {
+        stopRecognition();
+      }
+    }
+
+    function startRecognition() {
+      if (!recognition) return;
+      isRecording = true;
+      recordButton.classList.add('recording');
+      // Cập nhật nội dung nút thành "Đang ghi âm..."
+      recordButton.innerHTML = '<span style="font-size: 16px; font-weight: bold;">Đang ghi âm...</span>';
+      recognition.start();
+    }
+
+    function stopRecognition() {
+      if (!recognition) return;
+      recognition.stop();
+      isRecording = false;
+      recordButton.classList.remove('recording');
+    }
+
+    recognition.onresult = function(event) {
+      const transcript = event.results[0][0].transcript;
+      console.log("Transcript:", transcript);
+      sendChatMessage(transcript);
+    };
+
+    recognition.onerror = function(event) {
+      console.error("Speech recognition error:", event.error);
+      alert("Lỗi nhận diện giọng nói: " + event.error);
+      recordButton.innerHTML = `<svg id="mic-icon" viewBox="0 0 24 24">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>`;
+      isRecording = false;
+      recordButton.classList.remove('recording');
+    };
+
+    recognition.onend = function() {
+      // Khi nhận diện kết thúc, ẩn nút ghi âm và hiển thị khung chat
+      recordButton.style.display = 'none';
+      chatBox.classList.add('active');
+    };
+
+    function sendChatMessage(message) {
+      loader.style.display = 'block';
+      fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.final_answer) {
+          chatContent.innerText = data.final_answer;
+        } else {
+          chatContent.innerText = "Không nhận được phản hồi từ chatbot.";
+        }
+        loader.style.display = 'none';
+      })
+      .catch(error => {
+        console.error("Error sending message:", error);
+        chatContent.innerText = "Đã xảy ra lỗi.";
+        loader.style.display = 'none';
+      });
+    }
+
+    document.getElementById('back-button').addEventListener('click', () => {
+      chatBox.classList.remove('active');
+      setTimeout(() => {
+        recordButton.style.display = 'flex';
+        recordButton.innerHTML = `<svg id="mic-icon" viewBox="0 0 24 24">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>`;
+        loader.style.display = 'none';
+        chatContent.innerText = "";
+      }, 400);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      const x = e.clientX / window.innerWidth;
+      const y = e.clientY / window.innerHeight;
+      document.body.style.background = `
+        radial-gradient(at ${x * 100}% ${y * 100}%, 
+        #1a1a2e 0%, 
+        #0a0a16 50%)
+      `;
+    });
+  </script>
+</body>
+</html>
