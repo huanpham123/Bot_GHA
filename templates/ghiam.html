@@ -23,7 +23,6 @@
       min-height: 100vh;
       overflow-x: hidden;
     }
-    /* Nút ghi âm nổi giữa màn hình */
     #record-button {
       width: 100px;
       height: 100px;
@@ -51,7 +50,6 @@
     #record-button svg, #record-button span {
       transition: all 0.3s ease;
     }
-    /* Khung hiển thị chat */
     #chat-box {
       position: fixed;
       bottom: 120px;
@@ -81,7 +79,6 @@
       border-radius: 10px;
       background: rgba(0, 0, 0, 0.3);
     }
-    /* Responsive Design */
     @media (max-width: 768px) {
       #record-button {
         width: 80px;
@@ -96,7 +93,6 @@
         padding: 20px;
       }
     }
-    /* Loading animation */
     .loader {
       display: none;
       width: 24px;
@@ -121,16 +117,13 @@
   </style>
 </head>
 <body>
-  <!-- Nút ghi âm -->
   <div id="record-button">
-    <!-- Hiển thị biểu tượng microphone ban đầu -->
     <svg id="mic-icon" viewBox="0 0 24 24">
       <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
       <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
     </svg>
   </div>
 
-  <!-- Khung chat -->
   <div id="chat-box">
     <div id="chat-content"></div>
     <div class="loader"></div>
@@ -140,16 +133,15 @@
   </div>
 
   <script>
-    // Sử dụng Web Speech API để nhận diện giọng nói tiếng Việt
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
-      recognition.lang = 'vi-VN'; // Ngôn ngữ tiếng Việt
+      recognition.lang = 'vi-VN';
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
     } else {
-      alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+      alert("Trình duyệt không hỗ trợ nhận diện giọng nói.");
     }
 
     let isRecording = false;
@@ -172,7 +164,6 @@
       if (!recognition) return;
       isRecording = true;
       recordButton.classList.add('recording');
-      // Hiển thị thông báo "Đang ghi âm..."
       recordButton.innerHTML = '<span style="font-size: 16px; font-weight: bold;">Đang ghi âm...</span>';
       recognition.start();
     }
@@ -193,16 +184,10 @@
     recognition.onerror = function(event) {
       console.error("Speech recognition error:", event.error);
       alert("Lỗi nhận diện giọng nói: " + event.error);
-      recordButton.innerHTML = `<svg id="mic-icon" viewBox="0 0 24 24">
-          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-        </svg>`;
-      isRecording = false;
-      recordButton.classList.remove('recording');
+      resetRecordButton();
     };
 
     recognition.onend = function() {
-      // Sau khi kết thúc nhận diện, ẩn nút ghi âm và hiển thị khung chat
       recordButton.style.display = 'none';
       chatBox.classList.add('active');
     };
@@ -214,31 +199,35 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: message })
       })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
       .then(data => {
-        if (data.final_answer) {
-          chatContent.innerText = data.final_answer;
-        } else {
-          chatContent.innerText = "Không nhận được phản hồi từ chatbot.";
-        }
+        chatContent.innerText = data.final_answer || "Không nhận được phản hồi từ chatbot.";
         loader.style.display = 'none';
       })
       .catch(error => {
         console.error("Error sending message:", error);
-        chatContent.innerText = "Đã xảy ra lỗi.";
+        chatContent.innerText = "Đã xảy ra lỗi khi gửi tin nhắn.";
         loader.style.display = 'none';
       });
+    }
+
+    function resetRecordButton() {
+      isRecording = false;
+      recordButton.classList.remove('recording');
+      recordButton.innerHTML = `<svg id="mic-icon" viewBox="0 0 24 24">
+        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+      </svg>`;
     }
 
     document.getElementById('back-button').addEventListener('click', () => {
       chatBox.classList.remove('active');
       setTimeout(() => {
         recordButton.style.display = 'flex';
-        recordButton.innerHTML = `<svg id="mic-icon" viewBox="0 0 24 24">
-          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-        </svg>`;
-        loader.style.display = 'none';
+        resetRecordButton();
         chatContent.innerText = "";
       }, 400);
     });
@@ -247,9 +236,7 @@
       const x = e.clientX / window.innerWidth;
       const y = e.clientY / window.innerHeight;
       document.body.style.background = `
-        radial-gradient(at ${x * 100}% ${y * 100}%, 
-        #1a1a2e 0%, 
-        #0a0a16 50%)
+        radial-gradient(at ${x * 100}% ${y * 100}%, #1a1a2e 0%, #0a0a16 50%)
       `;
     });
   </script>
