@@ -25,7 +25,6 @@ def chat():
         }]
     }
     headers = {"Content-Type": "application/json"}
-
     try:
         response = requests.post(API_URL, json=payload, headers=headers)
         if response.status_code != 200:
@@ -42,4 +41,5 @@ def chat():
         return jsonify({"error": "API error", "details": str(e)}), 500
 
 if __name__ == '__main__':
+    # Vercel sẽ quản lý quá trình khởi chạy, sử dụng PORT từ biến môi trường
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
