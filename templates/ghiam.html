@@ -4,55 +4,64 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Neon Voice Assistant</title>
+  <!-- Google Fonts: Orbitron cho phong cách futuristic -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary: #00ff9d;
       --secondary: #0066ff;
+      --accent: #ff4081;
       --bg: #0a0a16;
-      --glass: rgba(255, 255, 255, 0.05);
-      --neon-glow: 0 0 20px var(--primary);
+      --glass: rgba(255, 255, 255, 0.1);
+      --font-future: 'Orbitron', sans-serif;
     }
-    
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Roboto Mono', monospace;
+      font-family: var(--font-future);
     }
-
     body {
       background: var(--bg);
-      color: white;
-      min-height: 100vh;
-      overflow-x: hidden;
+      overflow: hidden;
       position: relative;
+      color: #e0e0e0;
     }
-
-    /* Hệ thống particle */
-    .particles {
-      position: fixed;
+    /* Animated background gradient */
+    body::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, #1a1a2e, #0a0a16, #0f0f1a, #1a1a2e);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      z-index: -2;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* Particle overlay effect */
+    body::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      pointer-events: none;
-      z-index: 0;
+      background: url('https://www.transparenttextures.com/patterns/diagmonds.png');
+      opacity: 0.1;
+      z-index: -1;
     }
-
-    .particle {
-      position: absolute;
-      background: radial-gradient(var(--primary), transparent);
-      border-radius: 50%;
-      filter: blur(2px);
-      animation: particle-float 20s infinite linear;
-    }
-
-    /* Nút ghi âm holographic */
+    /* Nút ghi âm với hiệu ứng neon */
     #record-button {
       width: 120px;
       height: 120px;
-      background: linear-gradient(45deg, 
-        var(--primary) 0%, 
-        var(--secondary) 50%, 
-        var(--primary) 100%);
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
       border-radius: 50%;
       position: fixed;
       left: 50%;
@@ -62,72 +71,51 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      box-shadow: 
-        var(--neon-glow),
-        0 0 50px var(--secondary),
-        inset 0 0 15px rgba(255, 255, 255, 0.2);
-      animation: 
-        hologram 4s infinite linear,
-        float 3s ease-in-out infinite;
-      z-index: 2;
+      box-shadow: 0 0 20px var(--primary), 0 0 40px var(--secondary);
+      animation: float 4s ease-in-out infinite;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-
-    #record-button::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: inherit;
-      filter: blur(25px);
-      opacity: 0.4;
-      z-index: -1;
-    }
-
     #record-button:hover {
-      transform: translate(-50%, -50%) scale(1.15);
-      filter: hue-rotate(45deg);
+      transform: translate(-50%, -50%) scale(1.1);
+      box-shadow: 0 0 30px var(--primary), 0 0 60px var(--secondary);
     }
-
     #record-button.recording {
-      animation: 
-        pulse 1.5s infinite, 
-        hologram 2s infinite linear,
-        float 3s ease-in-out infinite;
+      animation: pulse 1.5s infinite, float 4s ease-in-out infinite;
     }
-
-    /* Chat box với hiệu ứng thủy tinh */
+    #record-button svg, #record-button span {
+      transition: all 0.3s ease;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(-15px); }
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7); }
+      100% { box-shadow: 0 0 0 25px rgba(0, 255, 157, 0); }
+    }
+    /* Chat box kiểu glassmorphism */
     #chat-box {
       position: fixed;
-      bottom: 120px;
+      bottom: 80px;
       left: 50%;
       transform: translateX(-50%);
       width: 90%;
       max-width: 800px;
-      background: linear-gradient(145deg, 
-        rgba(255, 255, 255, 0.05) 0%, 
-        rgba(255, 255, 255, 0.02) 100%);
-      backdrop-filter: blur(15px) saturate(200%);
+      background: var(--glass);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(20px);
       border-radius: 20px;
       padding: 30px;
       opacity: 0;
       visibility: hidden;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 0 15px rgba(255, 255, 255, 0.05);
-      z-index: 1;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
     }
-
     #chat-box.active {
       opacity: 1;
       visibility: visible;
-      transform: translate(-50%, -20px);
+      transform: translate(-50%, -10px);
     }
-
-    /* Nội dung chat với hiệu ứng matrix */
     #chat-content {
       min-height: 150px;
       max-height: 60vh;
@@ -136,221 +124,183 @@
       margin-bottom: 20px;
       border-radius: 10px;
       background: rgba(0, 0, 0, 0.3);
-      position: relative;
-      font-family: 'Courier New', monospace;
+      font-size: 1.1em;
+      line-height: 1.5;
     }
-
-    .message {
-      margin: 15px 0;
-      padding: 12px 20px;
-      border-radius: 8px;
-      background: linear-gradient(90deg, 
-        rgba(0, 255, 157, 0.1) 0%, 
-        rgba(0, 102, 255, 0.05) 100%);
-      animation: message-appear 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      border-left: 3px solid var(--primary);
+    /* Nút Back hiện đại */
+    #back-button {
+      display: block;
+      margin: 0 auto;
+      padding: 12px 30px;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      color: var(--bg);
+      font-weight: bold;
+      text-transform: uppercase;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-
-    /* Loader công nghệ */
+    #back-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+    }
+    /* Loading animation */
     .loader {
-      --loader-size: 40px;
       display: none;
-      width: var(--loader-size);
-      height: var(--loader-size);
-      position: relative;
-      margin: 20px auto;
-    }
-
-    .loader::before,
-    .loader::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      width: 30px;
+      height: 30px;
+      border: 4px solid #fff;
+      border-bottom-color: transparent;
       border-radius: 50%;
-      border: 3px solid transparent;
-      mix-blend-mode: overlay;
-    }
-
-    .loader::before {
-      border-top-color: var(--primary);
       animation: rotation 1s linear infinite;
+      margin: 0 auto;
     }
-
-    .loader::after {
-      border-bottom-color: var(--secondary);
-      animation: rotation 1s linear infinite reverse;
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-
-    /* Keyframes animation */
-    @keyframes hologram {
-      0%, 100% { filter: hue-rotate(0deg) contrast(120%); }
-      50% { filter: hue-rotate(90deg) contrast(150%); }
-    }
-
-    @keyframes particle-float {
-      0% { 
-        transform: translateY(0) scale(0.5);
-        opacity: 0; 
-      }
-      50% { 
-        transform: translateY(-100px) scale(1);
-        opacity: 0.6; 
-      }
-      100% { 
-        transform: translateY(-200px) scale(0.5);
-        opacity: 0; 
-      }
-    }
-
-    @keyframes message-appear {
-      from {
-        opacity: 0;
-        transform: translateX(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    @keyframes cyber-border {
-      0% { border-image: linear-gradient(45deg, var(--primary), var(--secondary)) 1; }
-      100% { border-image: linear-gradient(315deg, var(--primary), var(--secondary)) 1; }
-    }
-
-    /* Responsive design */
     @media (max-width: 768px) {
       #record-button {
         width: 80px;
         height: 80px;
-        animation: hologram 4s infinite linear;
+        animation: none;
       }
-      
       #chat-box {
-        bottom: 160px;
+        bottom: 120px;
         width: 95%;
-        padding: 15px;
-      }
-      
-      .message {
-        font-size: 14px;
+        padding: 20px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="particles" id="particles"></div>
-  
+  <!-- Nút ghi âm -->
   <div id="record-button">
-    <svg id="mic-icon" viewBox="0 0 24 24" style="width: 40px; height: 40px; fill: white;">
+    <svg id="mic-icon" viewBox="0 0 24 24">
       <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
       <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
     </svg>
   </div>
 
+  <!-- Khung chat -->
   <div id="chat-box">
     <div id="chat-content"></div>
     <div class="loader"></div>
-    <button id="back-button" class="cyber-button">
-      <span class="glow-text">SPEAK AGAIN</span>
-      <div class="button-glow"></div>
-    </button>
+    <button id="back-button">Speak Again</button>
   </div>
 
   <script>
-    // Khởi tạo particle
-    function createParticles() {
-      const particles = document.getElementById('particles');
-      for (let i = 0; i < 50; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        Object.assign(particle.style, {
-          width: `${Math.random() * 4 + 2}px`,
-          height: particle.style.width,
-          left: `${Math.random() * 100}%`,
-          animationDelay: `${Math.random() * 20}s`
-        });
-        particles.appendChild(particle);
+    // Khởi tạo Web Speech API với ngôn ngữ tiếng Việt
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'vi-VN';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+    } else {
+      alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+    }
+
+    let isRecording = false;
+    const recordButton = document.getElementById('record-button');
+    const chatBox = document.getElementById('chat-box');
+    const chatContent = document.getElementById('chat-content');
+    const loader = document.querySelector('.loader');
+
+    recordButton.addEventListener('click', toggleRecording);
+
+    function toggleRecording() {
+      if (!isRecording) {
+        startRecognition();
+      } else {
+        stopRecognition();
       }
     }
-    
-    // Cập nhật background động
-    function updateDynamicBackground() {
-      document.addEventListener('mousemove', (e) => {
-        const x = e.clientX / window.innerWidth;
-        const y = e.clientY / window.innerHeight;
-        
-        document.body.style.background = `
-          radial-gradient(
-            circle at ${x * 100}% ${y * 100}%,
-            #1a1a2e 0%, 
-            #0a0a16 50%,
-            #000000 100%
-          )
-        `;
-      });
+
+    function startRecognition() {
+      if (!recognition) return;
+      isRecording = true;
+      recordButton.classList.add('recording');
+      // Hiển thị thông báo "Đang ghi âm..."
+      recordButton.innerHTML = '<span style="font-size: 16px; font-weight: bold;">Đang ghi âm...</span>';
+      recognition.start();
     }
 
-    // Hiệu ứng nhập văn bản Matrix
-    function matrixTextEffect(element, text) {
-      let index = 0;
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
-      
-      function animate() {
-        if (index < text.length) {
-          element.textContent = text.slice(0, index) + chars[Math.floor(Math.random() * chars.length)];
-          setTimeout(() => {
-            element.textContent = text.slice(0, index);
-            index++;
-            animate();
-          }, 50);
-        } else {
-          element.textContent = text;
-        }
-      }
-      animate();
+    function stopRecognition() {
+      if (!recognition) return;
+      recognition.stop();
+      isRecording = false;
+      recordButton.classList.remove('recording');
     }
 
-    // Khởi tạo các hiệu ứng
-    createParticles();
-    updateDynamicBackground();
+    recognition.onresult = function(event) {
+      const transcript = event.results[0][0].transcript;
+      console.log("Transcript:", transcript);
+      sendChatMessage(transcript);
+    };
 
-    // Phần JavaScript xử lý chức năng chính giữ nguyên...
-    // [Phần JavaScript xử lý voice recognition giữ nguyên như code gốc]
-    // ... (Thêm các hiệu ứng animation vào các sự kiện có sẵn)
+    recognition.onerror = function(event) {
+      console.error("Speech recognition error:", event.error);
+      alert("Lỗi nhận diện giọng nói: " + event.error);
+      resetRecordButton();
+    };
 
-    // Khi nhận được tin nhắn mới
-    function addMessage(message, isUser = false) {
-      const msgDiv = document.createElement('div');
-      msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-      matrixTextEffect(msgDiv, message);
-      chatContent.appendChild(msgDiv);
-      chatContent.scrollTop = chatContent.scrollHeight;
-    }
+    recognition.onend = function() {
+      recordButton.style.display = 'none';
+      chatBox.classList.add('active');
+    };
 
-    // Cập nhật hàm sendChatMessage
     function sendChatMessage(message) {
-      addMessage(message, true);
       loader.style.display = 'block';
-      
       fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: message })
       })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
       .then(data => {
-        addMessage(data.final_answer || "Không nhận được phản hồi từ chatbot.");
+        chatContent.innerText = data.final_answer || "Không nhận được phản hồi từ chatbot.";
         loader.style.display = 'none';
       })
       .catch(error => {
-        addMessage("Đã xảy ra lỗi khi kết nối đến server.");
+        console.error("Error sending message:", error);
+        chatContent.innerText = "Đã xảy ra lỗi khi gửi tin nhắn.";
         loader.style.display = 'none';
       });
     }
+
+    function resetRecordButton() {
+      isRecording = false;
+      recordButton.classList.remove('recording');
+      recordButton.innerHTML = `<svg id="mic-icon" viewBox="0 0 24 24">
+        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+      </svg>`;
+    }
+
+    document.getElementById('back-button').addEventListener('click', () => {
+      chatBox.classList.remove('active');
+      setTimeout(() => {
+        recordButton.style.display = 'flex';
+        resetRecordButton();
+        chatContent.innerText = "";
+      }, 400);
+    });
+
+    // Hiệu ứng di chuyển nền theo chuột (parallax)
+    document.addEventListener('mousemove', (e) => {
+      const x = e.clientX / window.innerWidth;
+      const y = e.clientY / window.innerHeight;
+      document.body.style.background = `
+        radial-gradient(at ${x * 100}% ${y * 100}%, #1a1a2e 0%, #0a0a16 50%)
+      `;
+    });
   </script>
 </body>
 </html>
